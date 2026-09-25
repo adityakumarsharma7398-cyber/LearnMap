@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #F9DDEB;
+    color: #111111;
+  }
+}
+
+@layer components {
+  /* Neo-brutalist buttons */
+  .btn-neo {
+    @apply font-bold px-5 py-2.5 rounded-xl border-[2.5px] border-[#111111] transition-all duration-150 active:translate-x-[2px] active:translate-y-[2px] active:shadow-neo-active;
+  }
+  
+  .btn-primary {
+    @apply btn-neo bg-[#3346C8] text-white shadow-neo hover:bg-[#2837a8];
+  }
+
+  .btn-mint {
+    @apply btn-neo bg-[#7DD6BF] text-[#111111] shadow-neo hover:bg-[#68c9af];
+  }
+
+  .btn-yellow {
+    @apply btn-neo bg-[#F8E54B] text-[#111111] shadow-neo hover:bg-[#ebd532];
+  }
+
+  .btn-lavender {
+    @apply btn-neo bg-[#C9B8F5] text-[#111111] shadow-neo hover:bg-[#b5a0eb];
+  }
+
+  .btn-white {
+    @apply btn-neo bg-white text-[#111111] shadow-neo hover:bg-gray-50;
+  }
+
+  .btn-danger {
+    @apply btn-neo bg-[#FF6B6B] text-white shadow-neo hover:bg-[#ee5858];
+  }
+
+  /* Cards & Containers */
+  .card-neo {
+    @apply bg-white rounded-2xl border-[2.5px] border-[#111111] shadow-neo;
+  }
+
+  .card-lavender {
+    @apply bg-[#C9B8F5] rounded-2xl border-[2.5px] border-[#111111] shadow-neo;
+  }
+
+  .card-yellow {
+    @apply bg-[#F8E54B] rounded-2xl border-[2.5px] border-[#111111] shadow-neo;
+  }
+
+  .card-mint {
+    @apply bg-[#7DD6BF] rounded-2xl border-[2.5px] border-[#111111] shadow-neo;
+  }
+
+  .card-pink {
+    @apply bg-[#E9A7C8] rounded-2xl border-[2.5px] border-[#111111] shadow-neo;
+  }
+
+  /* Badges */
+  .badge-status {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold border-[2px] border-[#111111];
+  }
+}
+
+/* Custom animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(233, 167, 200, 0.7);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px 8px rgba(255, 107, 107, 0.4);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* React Flow custom edge styles */
+.react-flow__edge-path {
+  stroke: #111111 !important;
+  stroke-width: 2.5px !important;
+}
+
+.react-flow__attribution {
+  display: none !important;
+}
