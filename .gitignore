@@ -4,11 +4,19 @@ frontend/node_modules/
 backend/venv/
 venv/
 .venv/
+env/
+.env/
 
 # Environment Variables
 .env
+.env.*
+!.env.example
 backend/.env
+backend/.env.*
+!backend/.env.example
 frontend/.env
+frontend/.env.*
+!frontend/.env.example
 *.env.local
 
 # Python Build & Bytecode
@@ -20,12 +28,19 @@ __pycache__/
 *$py.class
 *.egg-info/
 .pytest_cache/
+.coverage
+htmlcov/
 
 # Databases & SQLite
 *.db
 *.sqlite
 *.sqlite3
 learnmap.db
+backend/learnmap.db
+
+# Uploads
+uploads/
+backend/uploads/
 
 # Frontend Build
 dist/

@@ -176,16 +176,20 @@ Frontend application will be live at: **http://localhost:5173**
 ### Backend (`backend/.env`):
 ```ini
 DATABASE_URL=sqlite:///./learnmap.db
-# Or PostgreSQL: postgresql://postgres:postgres@localhost:5432/learnmap
-JWT_SECRET=supersecretjwtkeyforlearnmaphackathon2026
+# Or PostgreSQL (e.g. Render/Supabase): postgresql://user:password@hostname:5432/dbname
+JWT_SECRET=your_jwt_secret_key_change_in_production
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 LLM_API_KEY=
 LLM_PROVIDER=mock
 PORT=8000
+CORS_ORIGINS=http://localhost:5173,https://your-frontend.vercel.app
 ```
 
 ### Frontend (`frontend/.env`):
 ```ini
+# Local development backend API URL
 VITE_API_URL=http://localhost:8000
+# For production on Vercel, set to your deployed backend URL:
+# VITE_API_URL=https://your-backend.onrender.com
 ```

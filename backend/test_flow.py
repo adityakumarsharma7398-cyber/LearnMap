@@ -1,10 +1,19 @@
+import sys
+import os
+
+# Add parent directory to sys.path if run directly
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 import requests
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
-def test_full_loop():
+
+def run_http_test():
     # 1. Reset Demo
-    print("1. Resetting demo seed...")
+    print("1. Resetting demo seed via HTTP...")
     res = requests.post(f"{BASE_URL}/demo/reset-seed")
     assert res.status_code == 200, res.text
     demo_data = res.json()
@@ -75,8 +84,93 @@ def test_full_loop():
     print(f"   -> Node {cq_node['data']['label']} status in graph: {cq_node['data']['status']}")
     assert cq_node["data"]["status"] == "NEEDS_ATTENTION"
 
-    print("\n[SUCCESS] ALL TESTS PASSED! End-to-end LearnMap loop is 100% verified.")
+    print("\n[SUCCESS] ALL HTTP TESTS PASSED! End-to-end LearnMap loop is 100% verified.")
+
+
+def run_direct_test():
+    from app.database import SessionLocal
+    from app.routers.demo import reset_demo_seed
+    from app.routers.concepts import get_course_concepts, get_learn_map
+    from app.routers.practice import submit_practice, get_concept_questions
+    from app.schemas.schemas import PracticeSubmissionRequest, AttemptSubmission
+    from app.routers.recommendations import get_next_recommendation
+
+    db = SessionLocal()
+    try:
+        print("1. Resetting demo seed (direct)...")
+        demo_data = reset_demo_seed(db)
+        course_id = demo_data["course_id"]
+        print(f"   -> Demo Course: {demo_data['course_name']} ({course_id})")
+
+        print("\n2. Fetching course concepts...")
+        concepts = get_course_concepts(course_id, db)
+        cq = next((c for c in concepts if c["name"] == "Circular Queue"), None)
+        assert cq is not None, "Circular Queue not found!"
+        print(f"   -> Circular Queue initial status: {cq['status']}")
+        assert cq["status"] == "NOT_STARTED"
+
+        print("\n3. Fetching questions for Circular Queue...")
+        questions = get_concept_questions(cq["id"], db)
+        print(f"   -> Loaded {len(questions)} questions")
+        assert len(questions) >= 3
+
+        print("\n4. Submitting practice with 3 mistakes on Circular Queue...")
+        answers = []
+        for idx, q in enumerate(questions):
+            if idx < 3:
+                wrong_opt = next((opt for opt in q.options if opt != q.correct_answer), q.options[0])
+                answers.append(AttemptSubmission(question_id=q.id, selected_answer=wrong_opt))
+            else:
+                answers.append(AttemptSubmission(question_id=q.id, selected_answer=q.correct_answer))
+
+        payload = PracticeSubmissionRequest(concept_id=cq["id"], answers=answers)
+        result = submit_practice(cq["id"], payload, db, None)
+        print(f"   -> Accuracy: {result.accuracy}%")
+        print(f"   -> Previous status: {result.previous_status}")
+        print(f"   -> New status: {result.new_status}")
+        print(f"   -> Map changed: {result.map_changed}")
+        print(f"   -> Weakness detected: {result.weakness_detected}")
+        print(f"   -> Weakness reason: {result.weakness_reason}")
+        print(f"   -> Recommendation: {result.recommendation}")
+
+        assert result.new_status == "NEEDS_ATTENTION"
+        assert result.map_changed is True
+        assert result.weakness_detected is True
+
+        print("\n5. Checking Course Recommendation Endpoint...")
+        rec = get_next_recommendation(course_id, db, None)
+        assert rec is not None
+        print(f"   -> Recommended Action: {rec.reason}")
+        print(f"   -> Based on: {rec.based_on}")
+
+        print("\n6. Checking Live React Flow LearnMap output...")
+        learn_map = get_learn_map(course_id, db)
+        cq_node = next((n for n in learn_map.nodes if n.data.label == "Circular Queue"), None)
+        assert cq_node is not None
+        print(f"   -> Node {cq_node.data.label} status in graph: {cq_node.data.status}")
+        assert cq_node.data.status == "NEEDS_ATTENTION"
+
+        print("\n[SUCCESS] ALL INTEGRATION TESTS PASSED! End-to-end LearnMap loop is 100% verified.")
+    finally:
+        db.close()
+
+
+def test_full_loop():
+    # Detect if live server is reachable
+    is_live = False
+    try:
+        res = requests.get(f"{BASE_URL}/health", timeout=0.8)
+        if res.status_code == 200:
+            is_live = True
+    except Exception:
+        is_live = False
+
+    if is_live:
+        run_http_test()
+    else:
+        print(f"Live server at {BASE_URL} not detected. Running direct in-process integration test suite...")
+        run_direct_test()
+
 
 if __name__ == "__main__":
     test_full_loop()
-
